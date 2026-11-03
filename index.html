@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Aquarium</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:#020813;color:#fff}
+#bg{position:fixed;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,90,140,.5),rgba(0,20,50,.8)),url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=2000&q=85') center/cover;filter:saturate(1.2)}
+.rays{position:fixed;inset:-20%;z-index:2;pointer-events:none;background:repeating-linear-gradient(105deg,transparent 0,rgba(255,255,255,.08) 4%,transparent 8%,transparent 16%);animation:rays 16s ease-in-out infinite alternate}
+@keyframes rays{from{transform:translateX(-3%) rotate(-6deg)}to{transform:translateX(3%) rotate(-10deg)}}
+.air{position:fixed;bottom:-20px;z-index:2;border-radius:50%;border:1px solid rgba(255,255,255,.45);animation:up linear infinite;pointer-events:none}
+@keyframes up{to{transform:translateY(-110vh)}}
+#tank{position:fixed;inset:0;z-index:3;overflow:hidden}
+.fish{position:absolute;left:0;top:0;will-change:transform;cursor:pointer}
+.fish img{display:block;width:100%;height:auto;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+.bubble{position:absolute;bottom:100%;left:50%;width:max-content;max-width:210px;transform:translateX(-50%) scale(.85);padding:8px 12px;border-radius:14px;background:#fff;color:#0b1a28;font-size:.85rem;font-weight:500;line-height:1.25;text-align:center;opacity:0;transition:.25s;pointer-events:none;z-index:5}
+.bubble.on{opacity:1;transform:translateX(-50%) scale(1)}
+#cleaner{position:fixed;bottom:0;left:50%;height:70vh;z-index:6;transform:translateX(-50%);opacity:0;transition:opacity .6s;pointer-events:none}
+#cleaner.on{opacity:1}
+#cleaner img{height:100%;width:auto;display:block}
+#cleaner .bubble{bottom:auto;top:4%;left:80%}
+.ui{position:fixed;inset:0;z-index:4;pointer-events:none;display:flex;justify-content:space-between;padding:40px 50px}
+.glass{background:rgba(10,22,34,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);border-radius:26px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.clock{padding:26px 36px;height:max-content}
+#hm{font-size:5rem;font-weight:700;line-height:1;letter-spacing:-2px;text-shadow:0 4px 20px rgba(0,0,0,.35)}
+#sec{font-size:1.6rem;font-weight:300;opacity:.7;margin-left:6px;letter-spacing:0}
+#date{font-size:1.3rem;font-weight:300;opacity:.9;margin-top:10px;text-transform:capitalize}
+.hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:7;font-size:.8rem;opacity:.7;background:rgba(0,0,0,.45);padding:6px 14px;border-radius:20px;transition:opacity 1s;pointer-events:none}
+@media(max-width:900px){.ui{padding:20px}#hm{font-size:3.4rem}}
+@media(prefers-reduced-motion:reduce){.rays,.air{animation:none}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div class="rays"></div>
+<div id="tank"></div>
+<div id="cleaner"><img src="salvatore-pulisce.png" alt="Salvatore pulisce"><div class="bubble"></div></div>
+<div class="ui">
+  <div class="glass clock"><div><span id="hm"></span><span id="sec"></span></div><div id="date"></div></div>
+</div>
+<div class="hint" id="hint">Tocca lo schermo per attivare l'audio · tocca un pesce per farlo parlare</div>
+<script src="frasi.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const pick = a => a && a.length ? a[Math.floor(Math.random() * a.length)] : null;
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+/* Orologio */
+function tick() {
+  const d = new Date();
+  $('#hm').textContent = d.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'});
+  $('#sec').textContent = String(d.getSeconds()).padStart(2, '0');
+  $('#date').textContent = d.toLocaleDateString('it-IT', {weekday: 'long', day: 'numeric', month: 'long'});
+}
+setInterval(tick, 1000); tick();
+
+/* Bolle d'aria */
+for (let i = 0; i < 14; i++) {
+  const b = document.createElement('div'), s = rnd(6, 20);
+  b.className = 'air';
+  b.style.cssText = `left:${rnd(0, 100)}%;width:${s}px;height:${s}px;animation-duration:${rnd(9, 22)}s;animation-delay:${-rnd(0, 20)}s`;
+  document.body.appendChild(b);
+}
+
+/* Audio: rumore dello spray */
+let ac;
+addEventListener('pointerdown', () => {
+  if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (ac.state === 'suspended') ac.resume();
+  $('#hint').style.opacity = 0;
+}, {once: false});
+function spray() {
+  if (!ac || ac.state !== 'running') return;
+  for (let i = 0; i < 3; i++) {
+    const t = ac.currentTime + i * .4, n = Math.floor(ac.sampleRate * .28);
+    const buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+    for (let j = 0; j < n; j++) d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / n, 1.5);
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = buf; f.type = 'highpass'; f.frequency.value = 2800; g.gain.value = .4;
+    s.connect(f); f.connect(g); g.connect(ac.destination); s.start(t);
+  }
+}
+
+/* Personaggi */
+const SC = Math.max(.6, Math.min(1, innerWidth / 1000));
+const CH = {
+  giulia:   {img: 'giulia.png',   w: 130, face: 'L', speed: 2.2},
+  salvatore:{img: 'salvatore.png',w: 115, face: 'L', speed: .7},
+  ciccio:   {img: 'ciccio.png',   w: 110, face: null, speed: .9},
+  nemesi:   {img: 'nemesi.png',   w: 150, face: 'R', speed: 1.1},
+  gullotta: {img: 'gullotta.png', w: 150, face: 'L', speed: 5}
+};
+const W = () => innerWidth, H = () => innerHeight;
+const F = {};
+
+function say(f, txt, ms = 3600) {
+  if (!txt || f.mode === 'away') return;
+  f.b.textContent = txt; f.b.classList.add('on');
+  clearTimeout(f.bt); f.bt = setTimeout(() => f.b.classList.remove('on'), ms);
+}
+function target(f) {
+  const w = f.w;
+  if (f.k === 'gullotta') {
+    const fromL = Math.random() < .5, y = rnd(110, H() - 200);
+    f.x = fromL ? -w - 40 : W() + 40; f.y = y; f.tx = fromL ? W() + 40 : -w - 40; f.ty = y + rnd(-60, 60);
+    f.dashing = true; say(f, pick(FRASI.gullotta.sindaco), 2600);
+  } else if (f.k === 'nemesi') {
+    const c = F.ciccio;
+    f.tx = Math.max(10, Math.min(W() - w - 10, c.x + rnd(-150, 150)));
+    f.ty = f.low ? rnd(110, H() * .3) : rnd(H() * .6, H() - w * .8 - 20); f.low = !f.low;
+  } else {
+    f.tx = rnd(20, Math.max(40, W() - w - 20));
+    f.ty = f.k === 'ciccio' ? rnd(H() * .55, H() - w - 20) : rnd(110, H() - w - 40);
+  }
+}
+function hold(f, t, ms) { f.mode = 'stop'; f.until = t + ms; }
+function arrive(f, t) {
+  const k = f.k, R = Math.random();
+  if (k === 'gullotta') { f.dashing = false; f.x = -999; hold(f, t, rnd(12000, 22000)); return; }
+  if (k === 'giulia') {
+    if (R < .35) { say(f, pick(FRASI.giulia.mail)); hold(f, t, 3500); return; }
+    if (R < .75) say(f, pick(FRASI.giulia.normali));
+  } else if (k === 'salvatore') {
+    if (R < .35) { f.mode = 'sleep'; f.until = t + rnd(9000, 13000); f.talk = t + 2500; say(f, 'Zzz...', 2000); return; }
+  } else if (k === 'ciccio') {
+    if (R < .4) { say(f, pick(FRASI.ciccio.cavi)); hold(f, t, 3500); return; }
+    if (R < .55) say(f, pick(FRASI.ciccio.xfactor));
+  } else if (k === 'nemesi') {
+    if (R < .12 && !f.modus) { goModus(f, t); return; }
+    if (R < .45) say(f, pick(FRASI.nemesi.occhi));
+    else if (R < .75) say(f, pick(FRASI.nemesi.conCiccio));
+    hold(f, t, rnd(800, 2000));
+  }
+  target(f);
+}
+function goModus(f, t) {
+  f.modus = true; f.img.src = 'nemesi-modus.png'; f.w = 190 * SC; f.el.style.width = f.w + 'px';
+  say(f, pick(FRASI.nemesi.modus) || pick(FRASI.nemesi.preferita) || 'Vroom vroom!', 4500);
+  f.until = t + 8000; f.mode = 'stop';
+}
+function backFromModus(f) {
+  f.modus = false; f.img.src = 'nemesi.png'; f.w = CH.nemesi.w * SC; f.el.style.width = f.w + 'px';
+}
+
+function make(k) {
+  const c = CH[k], el = document.createElement('div');
+  el.className = 'fish'; el.style.width = c.w * SC + 'px';
+  el.innerHTML = '<img src="' + c.img + '" alt="' + k + '"><div class="bubble"></div>';
+  $('#tank').appendChild(el);
+  const f = {k, c, el, img: el.firstChild, b: el.lastChild, w: c.w * SC, x: rnd(60, W() - 260), y: rnd(130, H() - 260),
+    dir: 1, mode: 'swim', until: 0, bt: 0, ph: rnd(0, 6), cd: 0};
+  F[k] = f; target(f);
+  el.onclick = () => {
+    const L = FRASI[k];
+    say(f, pick(k === 'gullotta' ? L.sindaco : k === 'giulia' ? L.normali : k === 'salvatore' ? L.incontro : k === 'ciccio' ? L.xfactor : L.conCiccio));
+  };
+  return f;
+}
+Object.keys(CH).forEach(make);
+F.gullotta.x = -999; hold(F.gullotta, 0, 6000);
+
+/* Movimento */
+let last = performance.now();
+function loop(t) {
+  const k60 = Math.min(3, (t - last) / 16.7); last = t;
+  for (const key in F) {
+    const f = F[key];
+    if (f.mode === 'away') continue;
+    if (f.mode === 'stop' || f.mode === 'sleep') {
+      if (f.mode === 'sleep' && t > f.talk) { say(f, pick(FRASI.salvatore.sonno)); f.talk = t + rnd(3000, 4500); }
+      if (t > f.until) {
+        if (f.modus) backFromModus(f);
+        f.mode = 'swim'; target(f);
+      }
+    } else {
+      const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy);
+      if (d < 8) arrive(f, t);
+      else {
+        const sp = f.c.speed * k60;
+        f.x += dx / d * sp; f.y += dy / d * sp;
+        if (Math.abs(dx) > 2) f.dir = dx > 0 ? 1 : -1;
+      }
+    }
+    const bob = Math.sin(t / 700 + f.ph) * (f.mode === 'sleep' ? 9 : 5);
+    f.el.style.transform = `translate(${f.x}px,${f.y + bob}px)`;
+    const flip = f.c.face && ((f.dir > 0 && f.c.face === 'L') || (f.dir < 0 && f.c.face === 'R'));
+    f.img.style.transform = flip ? 'scaleX(-1)' : '';
+    f.img.style.opacity = f.mode === 'sleep' ? .8 : 1;
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* Incontri tra pesci */
+const near = (a, b, d) => Math.abs(a.x - b.x) < d && Math.abs(a.y - b.y) < d;
+setInterval(() => {
+  const now = Date.now(), g = F.gullotta, s = F.salvatore, c = F.ciccio, n = F.nemesi;
+  if (g.dashing) {
+    for (const k of ['giulia', 'salvatore', 'ciccio', 'nemesi']) {
+      const o = F[k];
+      if (o.mode !== 'away' && near(g, o, 230) && now > o.cd) { say(o, pick(FRASI.gullotta.insultatoDa)); o.cd = now + 5000; }
+    }
+    if (Math.random() < .3) say(g, pick(['L\'opposizione!!', 'Le buche!!']), 1800);
+  }
+  if (near(c, n, 240) && now > c.cd) {
+    c.cd = now + 16000;
+    say(c, pick(FRASI.ciccio.nemesi));
+    setTimeout(() => say(n, pick(FRASI.nemesi.litigio)), 1500);
+  }
+  if (s.mode === 'swim' && now > s.cd) {
+    for (const k of ['giulia', 'ciccio', 'nemesi']) {
+      if (F[k].mode !== 'away' && near(s, F[k], 190)) { say(s, pick(k === 'nemesi' && Math.random() < .3 ? FRASI.nemesi.bene : FRASI.salvatore.incontro)); s.cd = now + 12000; break; }
+    }
+  }
+}, 700);
+
+/* Salvatore esce a pulire l'acquario */
+function clean() {
+  const s = F.salvatore, cl = $('#cleaner'), cb = cl.querySelector('.bubble');
+  s.mode = 'away'; s.el.style.visibility = 'hidden';
+  cl.classList.add('on'); spray();
+  cb.textContent = pick(FRASI.salvatore.pulizie) || ''; cb.classList.add('on');
+  const sp = setInterval(spray, 1500);
+  setTimeout(() => {
+    clearInterval(sp); cl.classList.remove('on'); cb.classList.remove('on');
+    s.x = rnd(100, W() - 300); s.y = rnd(130, H() - 300); s.mode = 'swim'; s.el.style.visibility = ''; target(s);
+  }, 7000);
+}
+setTimeout(function again() { clean(); setTimeout(again, rnd(60000, 100000)); }, 30000);
+</script>
+</body>
+</html>
