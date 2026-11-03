@@ -38,6 +38,30 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .egg{position:absolute;line-height:1;pointer-events:none;z-index:2;will-change:transform;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
 .food{position:absolute;width:8px;height:8px;border-radius:50%;background:#e9b872;z-index:2;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(var(--d));opacity:.2}}
+#attack{position:fixed;top:12%;height:70vh;z-index:7;translate:-50% 0;pointer-events:none;animation:splat .35s cubic-bezier(.2,1.6,.4,1) both,wob 1.2s ease-in-out .5s infinite alternate}
+#attack img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 20px rgba(0,0,0,.5))}
+#attack .bubble{bottom:auto;top:-6%}
+#attack.out{animation:outa .8s forwards}
+@keyframes splat{from{transform:scale(.15);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes wob{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+@keyframes outa{to{opacity:0;transform:scale(.9) translateY(30px)}}
+.sfx{position:fixed;top:14%;z-index:8;translate:-50% 0;font:900 6rem 'Hiragino Sans','Noto Sans JP',sans-serif;color:#fff;-webkit-text-stroke:3px #e91e63;text-shadow:0 6px 0 #e91e63;pointer-events:none;animation:pop 1.6s ease-out forwards}
+@keyframes pop{0%{transform:scale(.3) rotate(-10deg);opacity:0}15%{transform:scale(1.2) rotate(4deg);opacity:1}100%{transform:scale(1);opacity:0}}
+#tank.shake{animation:shk .5s}
+@keyframes shk{0%,100%{transform:none}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,2px)}80%{transform:translate(6px,-2px)}}
+.rise{position:fixed;bottom:0;height:55vh;z-index:5;translate:-50% 0;pointer-events:none;animation:rise 1.6s ease-out both}
+.rise img{height:100%;width:auto;display:block}
+.rise.out{animation:sink 1.4s ease-in forwards}
+@keyframes rise{from{transform:translateY(105%)}to{transform:none}}
+@keyframes sink{to{transform:translateY(105%)}}
+.heart{position:fixed;z-index:6;font-size:2rem;pointer-events:none;animation:hrt 3.2s ease-out forwards}
+@keyframes hrt{0%{opacity:0;transform:translate(0,0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-45vh) scale(1.2)}}
+.school{position:absolute;left:0;pointer-events:none;z-index:2}
+.school img{position:absolute;height:auto;animation:sw 3s ease-in-out infinite alternate}
+@keyframes sw{to{transform:translateY(10px)}}
+.luca{position:fixed;z-index:4;height:36vh;translate:-50% 0;pointer-events:none;opacity:0;transition:opacity 1.5s}
+.luca.on{opacity:1}
+.luca img{height:100%;width:auto;display:block}
 .zone{position:fixed;left:0;right:0;z-index:9;pointer-events:none;background:rgba(0,200,255,.15);border:1px dashed #0ff}
 @media(max-width:900px){.ui{padding:20px}#hm{font-size:3.4rem}}
 @media(prefers-reduced-motion:reduce){.rays,.air{animation:none}}
@@ -135,6 +159,8 @@ const CH = {
   salvatore:{img: 'salvatore.png',w: 115, face: 'L', speed: .7},
   ciccio:   {img: 'ciccio.png',   w: 110, face: null, speed: .9},
   nemesi:   {img: 'nemesi.png',   w: 150, face: 'R', speed: 1.1},
+  alessia:  {img: 'alessia.png',  w: 150, face: null, speed: .9},
+  maura:    {img: 'maura.png',    w: 165, face: 'R', speed: 1.3},
   gullotta: {img: 'gullotta.png', w: 150, face: 'L', speed: 4}
 };
 const W = () => innerWidth, H = () => innerHeight;
@@ -162,6 +188,8 @@ function target(f) {
     f.ty = f.low ? rnd(a, a + (b - a) * .25) : rnd(b - (b - a) * .25, b); f.low = !f.low;
   } else if (f.k === 'ciccio') {
     f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = floor(f); f.grounded = true;
+  } else if (f.k === 'maura' && Math.random() < .45) {
+    const a = F.alessia; f.tx = Math.max(10, Math.min(W() - w - 10, a.x + rnd(-130, 130))); f.ty = water(f);
   } else {
     f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = water(f);
   }
@@ -178,6 +206,12 @@ function arrive(f, t) {
   } else if (k === 'ciccio') {
     if (R < .4) { say(f, pick(FRASI.ciccio.cavi)); hold(f, t, 3500); return; }
     if (R < .55) say(f, pick(FRASI.ciccio.xfactor));
+  } else if (k === 'alessia') {
+    if (R < .25) { say(f, pick(FRASI.alessia.cucina)); hold(f, t, 3500); return; }
+    if (R < .55) say(f, pick(FRASI.alessia.giapponese));
+  } else if (k === 'maura') {
+    if (R < .3) { f.dog = !f.dog; f.img.src = f.dog ? 'maura-summer.png' : 'maura.png'; say(f, pick(f.dog ? FRASI.maura.summerOn : FRASI.maura.summerOff), 3500); }
+    else if (R < .5) say(f, pick(FRASI.maura.normali));
   } else if (k === 'nemesi') {
     if (f.modus) { target(f); return; }
     if (R < .12) { goModus(f, t); return; }
@@ -206,7 +240,7 @@ function make(k) {
   F[k] = f; target(f); if (k !== 'gullotta') { f.x = f.tx; f.y = f.ty; target(f); }
   el.onclick = () => {
     const L = FRASI[k];
-    say(f, pick(k === 'gullotta' ? L.sindaco : k === 'giulia' ? L.normali : k === 'salvatore' ? L.incontro : k === 'ciccio' ? L.xfactor : L.conCiccio));
+    say(f, pick(L.click ? L.click : k === 'gullotta' ? L.sindaco : k === 'giulia' ? L.normali : k === 'salvatore' ? L.incontro : k === 'ciccio' ? L.xfactor : L.conCiccio));
   };
   return f;
 }
@@ -231,7 +265,7 @@ function loop(t) {
       const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy);
       if (d < 8) arrive(f, t);
       else {
-        const sp = f.c.speed * (f.modus ? 2 : 1) * (window.NIGHT ? .4 : 1) * k60;
+        const sp = f.c.speed * (f.modus ? 2 : 1) * (window.NIGHT ? .4 : 1) * (t < (f.fleeUntil || 0) ? 3 : 1) * k60;
         f.x += dx / d * sp; f.y += dy / d * sp;
         if (Math.abs(dx) > 2) f.dir = dx > 0 ? 1 : -1;
       }
@@ -240,7 +274,8 @@ function loop(t) {
     f.el.style.transform = `translate(${f.x}px,${f.y + bob}px)`;
     const flip = f.c.face && ((f.dir > 0 && f.c.face === 'L') || (f.dir < 0 && f.c.face === 'R'));
     f.img.style.transform = flip ? 'scaleX(-1)' : '';
-    f.img.style.opacity = f.mode === 'sleep' ? .8 : 1;
+    if (f.k === 'salvatore') { const w = f.mode === 'sleep' ? 'salvatore-dorme.png' : 'salvatore.png'; if (f.cur !== w) { f.cur = w; f.img.src = w; } }
+    f.img.style.opacity = 1;
   }
   requestAnimationFrame(loop);
 }
@@ -287,7 +322,7 @@ setTimeout(function again() { clean(); setTimeout(again, rnd(60000, 100000)); },
 // Effetti che compaiono sopra i pesci. Per usare una GIF al posto dell'emoji aggiungi gif: 'nome.gif' (es. mail: {gif: 'mail.gif'})
 const FX = {
   mail: {emoji: '📧'}, sonno: {emoji: '💤'}, cavi: {emoji: '🔌'}, stella: {emoji: '⭐'},
-  rabbia: {emoji: '💢'}, fumo: {emoji: '💨'}, occhi: {emoji: '👀'}, sindaco: {emoji: '🚲'}
+  rabbia: {emoji: '💢'}, fumo: {emoji: '💨'}, occhi: {emoji: '👀'}, sindaco: {emoji: '🚲'}, pasta: {emoji: '🍝'}
 };
 // Opzionale: indirizzo di un servizio IA che restituisce {battute:[{chi:'giulia',frase:'...'}]}
 const AI_URL = '';
@@ -302,9 +337,10 @@ function fx(f, name) {
 const _say = say;
 say = (f, txt, ms) => {
   _say(f, txt, ms);
+  if (f.k === 'alessia' && FRASI.alessia.giapponese.includes(txt) && Math.random() < .3) urla(txt);
   if (!txt || f.mode === 'away' || Math.random() > .7) return;
   const T = [[FRASI.giulia.mail, 'mail'], [FRASI.salvatore.sonno, 'sonno'], [FRASI.ciccio.cavi, 'cavi'], [FRASI.ciccio.xfactor, 'stella'],
-    [FRASI.ciccio.nemesi, 'rabbia'], [FRASI.gullotta.insultatoDa, 'rabbia'], [FRASI.nemesi.conCiccio, 'fumo'], [FRASI.nemesi.occhi, 'occhi'], [FRASI.gullotta.sindaco, 'sindaco']];
+    [FRASI.ciccio.nemesi, 'rabbia'], [FRASI.gullotta.insultatoDa, 'rabbia'], [FRASI.nemesi.conCiccio, 'fumo'], [FRASI.nemesi.occhi, 'occhi'], [FRASI.gullotta.sindaco, 'sindaco'], [FRASI.alessia.cucina, 'pasta']];
   const m = T.find(x => x[0] && x[0].includes(txt)); if (m) fx(f, m[1]);
 };
 
@@ -362,7 +398,7 @@ setInterval(() => {
 let dCd = 0;
 setInterval(() => {
   if (Date.now() < dCd || window.NIGHT) return;
-  const x = pick((FRASI.dialoghi || []).filter(x => { const a = F[x[0]], b = F[x[2]]; return a.mode !== 'away' && b.mode !== 'away' && a.x > -50 && b.x > -50 && near(a, b, 260); }));
+  const x = pick((FRASI.dialoghi || []).filter(x => { const a = F[x[0]], b = F[x[2]]; return a && b && a.mode !== 'away' && b.mode !== 'away' && a.x > -50 && b.x > -50 && near(a, b, 260); }));
   if (!x) return;
   dCd = Date.now() + 30000; say(F[x[0]], x[1], 3500); setTimeout(() => say(F[x[2]], x[3], 3500), 2800);
 }, 2000);
@@ -392,6 +428,109 @@ const EGGS = [
   () => { passa('🐙', rnd(H() * .35, H() * .6), 90, 30, -1); chorus(['Un polpo!', 'Ciao polpo', 'Chi lo ha invitato?']); }
 ];
 setTimeout(function egg() { if (!window.NIGHT || Math.random() < .3) pick(EGGS)(); setTimeout(egg, rnd(50000, 110000)); }, 25000);
+
+/* ====== NUOVI PERSONAGGI ED EVENTI RARI ====== */
+const rare = (fn, min, max, first) => setTimeout(function r() { if (!window.NIGHT) fn(); setTimeout(r, rnd(min, max)); }, first);
+function tone(freq, dur, vol = .15) {
+  if (!ac || ac.state !== 'running') return;
+  const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+  o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * .5, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + .05);
+}
+const thud = () => tone(150, .35, .6);
+const blip = () => { tone(880, .12, .08); setTimeout(() => tone(1200, .12, .06), 90); };
+function urla(txt) {
+  if (!('speechSynthesis' in window) || !ac || ac.state !== 'running') return;
+  const u = new SpeechSynthesisUtterance(String(txt).split(' (')[0]);
+  u.lang = 'ja-JP'; u.rate = 1.15; u.pitch = 1.7; speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+/* Alessia attacca il vetro (raro). Anche toccandola 3 volte di fila */
+let attaccando = false;
+function attacco() {
+  const a = F.alessia; if (attaccando || a.mode === 'away') return; attaccando = true;
+  a.mode = 'away'; a.el.style.visibility = 'hidden';
+  const line = pick(FRASI.alessia.attacco), x = rnd(15, 65) + '%', el = document.createElement('div'), sfx = document.createElement('div');
+  el.id = 'attack'; el.style.left = x; el.innerHTML = '<img src="alessia-attacco.png" alt=""><div class="bubble on"></div>';
+  el.querySelector('.bubble').textContent = line; document.body.appendChild(el);
+  sfx.className = 'sfx'; sfx.style.left = x; sfx.textContent = pick(['ドン！', 'バーン！', 'ガーン！']); document.body.appendChild(sfx);
+  setTimeout(() => sfx.remove(), 1800);
+  thud(); urla(line);
+  $('#tank').classList.add('shake'); setTimeout(() => $('#tank').classList.remove('shake'), 500);
+  chorus(['!!', 'Eh?!', 'Il vetro!', 'Alessia?!'], 2800);
+  setTimeout(() => el.classList.add('out'), 7000);
+  setTimeout(() => { el.remove(); a.x = rnd(100, W() - 300); a.y = water(a); a.mode = 'swim'; a.el.style.visibility = ''; target(a); attaccando = false; }, 7800);
+}
+let tap3 = 0, tapT = 0; const oc = F.alessia.el.onclick;
+F.alessia.el.onclick = () => { const n = Date.now(); tap3 = n - tapT < 1500 ? tap3 + 1 : 1; tapT = n; if (tap3 >= 3) { tap3 = 0; attacco(); } else oc(); };
+
+/* Maura minaccia (o coccola) gli altri pesci */
+function minaccia() {
+  const m = F.maura; if (m.mode === 'away' || window.NIGHT) return;
+  const k = pick(['salvatore', 'salvatore', 'giulia', 'ciccio', 'nemesi'].filter(k => F[k].mode !== 'away')); if (!k) return;
+  const o = F[k]; m.mode = 'swim'; m.tx = o.x; m.ty = o.y;
+  if (Math.random() < .6) {
+    say(m, pick(FRASI.maura.minacce), 3000);
+    setTimeout(() => {
+      say(o, pick(FRASI.maura.scappano), 2500); o.mode = 'swim'; o.fleeUntil = performance.now() + 3500;
+      o.tx = o.x < W() / 2 ? W() - o.w - 20 : 20; o.ty = water(o);
+    }, 1500);
+  } else { say(m, pick(FRASI.maura.dolci), 3500); fx(m, '💗'); }
+}
+setInterval(minaccia, 55000);
+
+/* Gabriel spunta dal fondo e manda dei cuori */
+function gabriel() {
+  const e = document.createElement('div'); e.className = 'rise'; e.style.left = rnd(12, 88) + '%';
+  e.innerHTML = '<img src="gabriel.png" alt="">'; document.body.appendChild(e);
+  setTimeout(() => {
+    const r = e.getBoundingClientRect(); blip();
+    for (let i = 0; i < 7; i++) setTimeout(() => {
+      const h = document.createElement('div'); h.className = 'heart'; h.textContent = pick(['💗', '💖', '💕']);
+      h.style.cssText = `left:${r.left + r.width * rnd(.4, .8)}px;top:${r.top + 20}px;--dx:${rnd(-80, 80)}px`;
+      document.body.appendChild(h); setTimeout(() => h.remove(), 3300);
+    }, i * 350);
+    const m = document.createElement('div'); m.className = 'bubble on'; m.textContent = pick(FRASI.gabriel.cuori);
+    m.style.cssText = `position:fixed;left:${r.left + r.width / 2}px;top:${Math.max(10, r.top - 50)}px;bottom:auto;z-index:9`;
+    document.body.appendChild(m); setTimeout(() => m.remove(), 5000);
+    say(F.salvatore, pick(FRASI.gabriel.reazioni), 2500);
+  }, 1700);
+  setTimeout(() => e.classList.add('out'), 7500); setTimeout(() => e.remove(), 9000);
+}
+
+/* Salvatore diventa un branco di sardine (silenzioso) */
+function sardine() {
+  const s = F.salvatore; if (s.mode === 'away') return;
+  s.mode = 'away'; s.el.style.visibility = 'hidden';
+  const dir = Math.random() < .5 ? 1 : -1, dur = 28, sc = document.createElement('div');
+  sc.className = 'school'; sc.style.cssText = `top:${rnd(H() * .15, H() * .55)}px;left:${dir > 0 ? -300 : W() + 60}px;transition:transform ${dur}s linear`;
+  for (let i = 0; i < 9; i++) {
+    const im = document.createElement('img'); im.src = 'salvatore-sardina.png'; im.alt = '';
+    im.style.cssText = `left:${rnd(0, 200)}px;top:${rnd(0, 110)}px;scale:${dir > 0 ? '-1 1' : '1 1'};animation-delay:${-rnd(0, 3)}s;width:${rnd(60, 80)}px`;
+    sc.appendChild(im);
+  }
+  $('#tank').appendChild(sc);
+  requestAnimationFrame(() => requestAnimationFrame(() => { sc.style.transform = `translateX(${dir * (W() + 400)}px)`; }));
+  setTimeout(() => { sc.remove(); s.x = rnd(100, W() - 300); s.y = water(s); s.mode = 'swim'; s.el.style.visibility = ''; target(s); }, dur * 1000 + 500);
+}
+
+/* Luca il sireno: fermo e silenzioso, alterna le skin, poi scompare */
+function luca() {
+  const e = document.createElement('div'), im = document.createElement('img'); e.className = 'luca'; im.src = 'luca1.png'; im.alt = ''; e.appendChild(im);
+  e.style.left = rnd(15, 85) + '%'; e.style.top = rnd(ZONE.waterTop * H(), ZONE.waterBottom * H() * .45) + 'px'; document.body.appendChild(e);
+  requestAnimationFrame(() => e.classList.add('on'));
+  let n = 0; const iv = setInterval(() => { n++; im.src = n % 2 ? 'luca2.png' : 'luca1.png'; im.style.scale = n % 4 > 1 ? '-1 1' : '1 1'; }, 2200);
+  setTimeout(() => e.classList.remove('on'), 16000); setTimeout(() => { clearInterval(iv); e.remove(); }, 17800);
+}
+
+rare(luca, 150000, 280000, 70000);
+rare(gabriel, 240000, 420000, 100000);
+rare(attacco, 300000, 540000, 150000);
+rare(sardine, 420000, 600000, 120000);
+// Per provare un evento subito: aggiungi al link ?evento=attacco (oppure gabriel, sardine, luca, minaccia)
+const EV = {attacco, gabriel, sardine, luca, minaccia}, evn = new URLSearchParams(location.search).get('evento');
+if (EV[evn]) setTimeout(EV[evn], 3000);
 
 /* Brano a sorpresa quando passa il sindaco */
 const eggA = new Audio();

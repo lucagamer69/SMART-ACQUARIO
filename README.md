@@ -1,6 +1,6 @@
 # 🐟 Smart Aquarium, versione 1
 
-Un acquario con cinque abitanti, ognuno col suo carattere. Tocca un pesce per farlo parlare.
+Un acquario con tanti abitanti, ognuno col suo carattere. Tocca un pesce per farlo parlare.
 
 ## I personaggi
 
@@ -18,6 +18,21 @@ Fa musica con Ciccio e con lui litiga di continuo. Sale e scende per l'acquario 
 
 **Il sindaco Gullotta, il terrore dei pesci**
 Sfreccia in bici per tutto l'acquario, tra insulti e proteste. Lui risponde sempre con un solenne "l'opposizione!!" e promette di riparare le buche.
+
+**Alessia, la razza che non sa cucinare**
+Parla giapponese e vuole imparare a cucinare (senza successo). Ogni tanto, molto raramente, attacca il vetro urlando come negli anime.
+
+**Maura, la dura (con o senza Summer)**
+Intimidatoria e tostissima, minaccia gli altri pesci (ma a volte è dolce). Bff di Alessia, ogni tanto passeggia con il suo cane Summer.
+
+**Gabriel, l'alga dei cuori**
+Spunta ogni tanto dal fondo e manda dei cuori a chi vuole bene (cioè quasi tutti).
+
+**Luca, il sireno**
+Compare di rado, fermo e in silenzio, poi scompare.
+
+**Il branco di sardine**
+Ogni tanto Salvatore si trasforma in un branco di sardine che attraversa l'acquario senza dire niente.
 
 ## Come si usa
 

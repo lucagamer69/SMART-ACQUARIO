@@ -224,6 +224,14 @@ const FRASI = {
       {da: 10, a: 19, f: ["Beat in lavorazione", "Ciccio, ascolta questo"]},
       {da: 19, a: 23, f: ["Sessione notturna", "Si registra stasera"]}
     ],
+    alessia: [
+      {da: 9, a: 13, f: ["日本語の勉強中 (Sto studiando giapponese)", "Oggi imparo una ricetta nuova"]},
+      {da: 18, a: 22, f: ["Stasera cucino! (spoiler: no)", "Chi ha del sale?"]}
+    ],
+    maura: [
+      {da: 10, a: 19, f: ["Giro di ispezione", "Chi mi serve oggi?"]},
+      {da: 19, a: 24, f: ["Serata girlzz con Alessia", "Aperitivo con le ragazze"]}
+    ],
     gullotta: [
       {da: 8, a: 12, f: ["Inaugurazione di una buca!", "Consiglio comunale: l'opposizione!!"]},
       {da: 12, a: 19, f: ["Giro d'ispezione in bici", "Sopralluogo alle buche"]}
@@ -235,7 +243,9 @@ const FRASI = {
     giulia: ["Pausa pranzo: 10 minuti", "Mangio e rispondo alle mail"],
     salvatore: ["...finalmente si mangia...", "Mangio e poi dormo"],
     ciccio: ["Stacco i cavi e mangio", "A tavola!"],
-    nemesi: ["Ciccio, mangia anche tu", "Questa è musica per il mio stomaco"]
+    nemesi: ["Ciccio, mangia anche tu", "Questa è musica per il mio stomaco"],
+    alessia: ["いただきます！ (Buon appetito!)", "Ho cucinato io... scherzo"],
+    maura: ["Summer, anche tu mangi!", "A tavola, ragazze!"]
   },
 
   // Piccole conversazioni quando due pesci sono vicini: [chi, frase, chi risponde, risposta]
@@ -245,7 +255,12 @@ const FRASI = {
     ["nemesi", "Ciccio, ascolta questo beat", "ciccio", "Troppo riverbero, rifallo"],
     ["giulia", "Facciamo un allineamento?", "ciccio", "Ho il soundcheck, mandami una mail"],
     ["salvatore", "Zzz... Giulia, il treno...", "giulia", "Salvo, sei in acqua"],
-    ["gullotta", "Sistemeremo le buche!", "nemesi", "Sindaco, è l'acqua!"]
+    ["gullotta", "Sistemeremo le buche!", "nemesi", "Sindaco, è l'acqua!"],
+    ["alessia", "Maura, hai visto Ciccio con i cavi? 🤭", "maura", "Chi, quello del rimbombo? Lascialo stare"],
+    ["maura", "Alessia, Nemesi segue Ciccio ovunque", "alessia", "えー！？ (Davvero!?) Gossip!"],
+    ["alessia", "Salvo-kun, ti cucino la pasta!", "salvatore", "...è bruciata?..."],
+    ["maura", "Salvo, vieni qui", "salvatore", "...no, grazie..."],
+    ["alessia", "Giulia, una call di gossip?", "giulia", "Ho 5 minuti, parla"]
   ],
 
   // Messaggi nella bottiglia (easter egg)
@@ -256,5 +271,38 @@ const FRASI = {
     "Fai una pausa, l'acqua aspetta",
     "Ciao dal passato: va tutto bene",
     "Sei qui, e basta questo"
-  ]
+  ],
+
+  alessia: {
+    // Giapponese + traduzione tra parentesi (nella nuvoletta si legge tutto, a voce dice solo la parte giapponese)
+    click: ["こんにちは！ (Ciao!)", "料理、手伝って！ (Aiutami a cucinare!)"],
+    giapponese: [
+      "すごーい！ (Fighissimo!)", "かわいい〜！ (Che carino!)", "ちょっと待って！ (Aspetta un attimo!)",
+      "うそでしょ！？ (Non ci credo!?)", "がんばります！ (Ce la metterò tutta!)", "おはよう！ (Buongiorno!)", "どうして！？ (Perché!?)"
+    ],
+    cucina: [
+      "料理、がんばります！ (Mi impegnerò a cucinare!)", "塩…どれくらい？ (Il sale... quanto?)", "あ、焦げた！ (Ah, si è bruciata!)",
+      "レシピを教えて！ (Insegnami la ricetta!)", "Oggi imparo a cucinare! (spoiler: no)"
+    ],
+    // L'attacco al vetro (raro). A voce dice solo la parte giapponese.
+    attacco: [
+      "やめてよ！ (Smettila!)", "ゆるさない！ (Non ti perdono!)", "覚えてろ！ (Te la farò pagare!)",
+      "どうして！？ (Perché!?)", "だめー！ (Noooo!)", "うそでしょ！？ (Non ci credo!?)"
+    ]
+  },
+
+  maura: {
+    click: ["Cosa vuoi?", "Oggi sono di buon umore. Forse."],
+    minacce: ["Ti tiro le mutande!", "Vieni qui che ti sistemo io", "Scappa, scappa... tanto ti prendo", "Oggi ti tiro le mutande, fidati", "Non fare il furbo con me"],
+    scappano: ["Aiuto!!", "Non le mutande!", "Maura, pietà!", "Scappo!!"],
+    dolci: ["Vieni qui, ti voglio bene", "Oggi sono buona, non dirlo a nessuno", "Ti ho portato un abbraccio", "Dai, non ti faccio niente... oggi"],
+    normali: ["Chi tocca i miei amici se la vede con me", "Qui comando io (con amore)", "Non mi guardare così", "Sono tosta, ma tenera"],
+    summerOn: ["Summer, andiamo a fare un giro", "Summer, con me, passeggiata"],
+    summerOff: ["Summer, vieni qui! Subito!", "Summer, no! Lascia stare i bambini!", "Summer a cuccia, torna tra poco"]
+  },
+
+  gabriel: {
+    cuori: ["Ti voglio bene ❤", "Salvo, ti voglio bene!", "Un cuore per te!", "Vi voglio bene tutti (quasi)", "Buongiorno a chi mi ama"],
+    reazioni: ["Gabri!!", "Ciao Gabri!", "Che bello!"]
+  }
 };
