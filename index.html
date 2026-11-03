@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;user-select:none}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:#020813;color:#fff}
-#bg{position:fixed;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,90,140,.5),rgba(0,20,50,.8)),url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=2000&q=85') center/cover;filter:saturate(1.2)}
+#bg{position:fixed;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,30,60,.15),rgba(0,10,25,.25)),url('sfondo.jpg') center bottom/cover}
 .rays{position:fixed;inset:-20%;z-index:2;pointer-events:none;background:repeating-linear-gradient(105deg,transparent 0,rgba(255,255,255,.08) 4%,transparent 8%,transparent 16%);animation:rays 16s ease-in-out infinite alternate}
 @keyframes rays{from{transform:translateX(-3%) rotate(-6deg)}to{transform:translateX(3%) rotate(-10deg)}}
 .air{position:fixed;bottom:-20px;z-index:2;border-radius:50%;border:1px solid rgba(255,255,255,.45);animation:up linear infinite;pointer-events:none}
@@ -29,18 +29,31 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 #sec{font-size:1.6rem;font-weight:300;opacity:.7;margin-left:6px;letter-spacing:0}
 #date{font-size:1.3rem;font-weight:300;opacity:.9;margin-top:10px;text-transform:capitalize}
 .hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:7;font-size:.8rem;opacity:.7;background:rgba(0,0,0,.45);padding:6px 14px;border-radius:20px;transition:opacity 1s;pointer-events:none}
+.decor{position:fixed;inset:0;pointer-events:none}#decorBack{z-index:2}#decorFront{z-index:4}.decor img{position:absolute;height:auto}
+#mbtn,#nbtn{position:fixed;right:18px;bottom:16px;z-index:8;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(10,22,34,.6);color:#fff;font-size:1.2rem;cursor:pointer}
+#nbtn{right:70px}
+.clock{pointer-events:auto;cursor:pointer}
+.fx{position:absolute;font-size:2rem;line-height:1;pointer-events:none;z-index:4;animation:fxup 2.8s ease-out forwards}
+@keyframes fxup{0%{opacity:0;transform:translate(-50%,0) scale(.5)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.1)}}
+.egg{position:absolute;line-height:1;pointer-events:none;z-index:2;will-change:transform;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.food{position:absolute;width:8px;height:8px;border-radius:50%;background:#e9b872;z-index:2;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(var(--d));opacity:.2}}
+.zone{position:fixed;left:0;right:0;z-index:9;pointer-events:none;background:rgba(0,200,255,.15);border:1px dashed #0ff}
 @media(max-width:900px){.ui{padding:20px}#hm{font-size:3.4rem}}
 @media(prefers-reduced-motion:reduce){.rays,.air{animation:none}}
 </style>
 </head>
 <body>
 <div id="bg"></div><div class="rays"></div>
+<div class="decor" id="decorBack"></div>
 <div id="tank"></div>
+<div class="decor" id="decorFront"></div>
 <div id="cleaner"><img src="salvatore-pulisce.png" alt="Salvatore pulisce"><div class="bubble"></div></div>
 <div class="ui">
   <div class="glass clock"><div><span id="hm"></span><span id="sec"></span></div><div id="date"></div></div>
 </div>
-<div class="hint" id="hint">Tocca lo schermo per attivare l'audio · tocca un pesce per farlo parlare</div>
+<div class="hint" id="hint">Tocca lo schermo per attivare l'audio · tocca un pesce per farlo parlare · tocca l'orologio per dare da mangiare</div>
+<button id="mbtn" title="Musica">🎵</button><button id="nbtn" title="Brano successivo">⏭</button>
 <script src="frasi.js"></script>
 <script>
 const $ = s => document.querySelector(s);
@@ -83,14 +96,46 @@ function spray() {
   }
 }
 
+/* ====== IMPOSTAZIONI (modificale qui) ====== */
+// Zone dello schermo (da 0 a 1, dall'alto in basso). Aggiungi ?debug alla fine del link per vederle colorate.
+const ZONE = {
+  waterTop: .10, waterBottom: .72,   // dove nuotano i pesci
+  floorTop: .80, floorBottom: .96    // la ghiaia: dove camminano Ciccio, la Modus e la bici
+};
+// Decorazioni GIF/PNG: layer 'back' = dietro ai pesci, 'front' = davanti. x e bottom in % o px, w = larghezza in px.
+const DECOR = [
+  // { src: 'alga.gif', x: '8%', bottom: '0%', w: 180, layer: 'front' },
+  // { src: 'corallo.gif', x: '60%', bottom: '2%', w: 220, layer: 'back' },
+];
+// Musica di sottofondo: playlist in ordine (i brani si ripetono). 'egg' parte solo ogni tanto, quando passa il sindaco in bici
+const MUSIC = { tracks: ['ambiente.mp3', 'aquarium.mp3', 'comfort.mp3', 'minecraft.mp3'], egg: 'montagna.mp3', volume: .3 };
+/* ============================================ */
+
+DECOR.forEach(d => {
+  const i = document.createElement('img');
+  i.src = d.src; i.style.cssText = `left:${d.x};bottom:${d.bottom || '0'};width:${d.w}px`;
+  $(d.layer === 'front' ? '#decorFront' : '#decorBack').appendChild(i);
+});
+if (location.search.includes('debug')) [[ZONE.waterTop, ZONE.waterBottom], [ZONE.floorTop, ZONE.floorBottom]].forEach(([a, b]) => {
+  const z = document.createElement('div'); z.className = 'zone';
+  z.style.top = a * 100 + '%'; z.style.height = (b - a) * 100 + '%'; document.body.appendChild(z);
+});
+const mus = new Audio(), mb = $('#mbtn'); let musOff = false, ti = 0;
+mus.volume = MUSIC.volume;
+const nextTrack = () => { if (!MUSIC.tracks.length) return; mus.src = MUSIC.tracks[ti++ % MUSIC.tracks.length]; mus.play().catch(() => {}); };
+mus.onended = nextTrack;
+addEventListener('pointerdown', e => { if (e.target.id !== 'mbtn' && e.target.id !== 'nbtn' && !musOff && !mus.src) nextTrack(); });
+mb.onclick = () => { if (!mus.src) { musOff = false; nextTrack(); } else if (mus.paused) { musOff = false; mus.play().catch(() => {}); mb.textContent = '🎵'; } else { musOff = true; mus.pause(); mb.textContent = '🔇'; } };
+$('#nbtn').onclick = () => { musOff = false; mb.textContent = '🎵'; nextTrack(); };
+
 /* Personaggi */
 const SC = Math.max(.6, Math.min(1, innerWidth / 1000));
 const CH = {
-  giulia:   {img: 'giulia.png',   w: 130, face: 'L', speed: 2.2},
+  giulia:   {img: 'giulia.png',   w: 130, face: 'L', speed: 1.6},
   salvatore:{img: 'salvatore.png',w: 115, face: 'L', speed: .7},
   ciccio:   {img: 'ciccio.png',   w: 110, face: null, speed: .9},
   nemesi:   {img: 'nemesi.png',   w: 150, face: 'R', speed: 1.1},
-  gullotta: {img: 'gullotta.png', w: 150, face: 'L', speed: 5}
+  gullotta: {img: 'gullotta.png', w: 150, face: 'L', speed: 4}
 };
 const W = () => innerWidth, H = () => innerHeight;
 const F = {};
@@ -100,25 +145,31 @@ function say(f, txt, ms = 3600) {
   f.b.textContent = txt; f.b.classList.add('on');
   clearTimeout(f.bt); f.bt = setTimeout(() => f.b.classList.remove('on'), ms);
 }
+const hh = f => f.el.offsetHeight || f.w * .9;
+const water = f => { const a = ZONE.waterTop * H(); return rnd(a, Math.max(a + 1, ZONE.waterBottom * H() - hh(f))); };
+const floor = f => rnd(ZONE.floorTop * H(), ZONE.floorBottom * H()) - hh(f);
 function target(f) {
-  const w = f.w;
+  const w = f.w; f.grounded = false;
   if (f.k === 'gullotta') {
-    const fromL = Math.random() < .5, y = rnd(110, H() - 200);
-    f.x = fromL ? -w - 40 : W() + 40; f.y = y; f.tx = fromL ? W() + 40 : -w - 40; f.ty = y + rnd(-60, 60);
-    f.dashing = true; say(f, pick(FRASI.gullotta.sindaco), 2600);
+    const fromL = Math.random() < .5, onFloor = Math.random() < .5, y = onFloor ? floor(f) : water(f);
+    f.grounded = onFloor;
+    f.x = fromL ? -w - 40 : W() + 40; f.y = y; f.tx = fromL ? W() + 40 : -w - 40; f.ty = y;
+    f.dashing = true; say(f, pick(FRASI.gullotta.sindaco), 2600); if (Math.random() < .2) chase();
   } else if (f.k === 'nemesi') {
-    const c = F.ciccio;
+    if (f.modus) { f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = floor(f); f.grounded = true; return; }
+    const c = F.ciccio, a = ZONE.waterTop * H(), b = Math.max(a + 40, ZONE.waterBottom * H() - hh(f));
     f.tx = Math.max(10, Math.min(W() - w - 10, c.x + rnd(-150, 150)));
-    f.ty = f.low ? rnd(110, H() * .3) : rnd(H() * .6, H() - w * .8 - 20); f.low = !f.low;
+    f.ty = f.low ? rnd(a, a + (b - a) * .25) : rnd(b - (b - a) * .25, b); f.low = !f.low;
+  } else if (f.k === 'ciccio') {
+    f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = floor(f); f.grounded = true;
   } else {
-    f.tx = rnd(20, Math.max(40, W() - w - 20));
-    f.ty = f.k === 'ciccio' ? rnd(H() * .55, H() - w - 20) : rnd(110, H() - w - 40);
+    f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = water(f);
   }
 }
 function hold(f, t, ms) { f.mode = 'stop'; f.until = t + ms; }
 function arrive(f, t) {
   const k = f.k, R = Math.random();
-  if (k === 'gullotta') { f.dashing = false; f.x = -999; hold(f, t, rnd(12000, 22000)); return; }
+  if (k === 'gullotta') { f.dashing = false; f.x = -999; hold(f, t, rnd(25000, 50000)); return; }
   if (k === 'giulia') {
     if (R < .35) { say(f, pick(FRASI.giulia.mail)); hold(f, t, 3500); return; }
     if (R < .75) say(f, pick(FRASI.giulia.normali));
@@ -128,7 +179,8 @@ function arrive(f, t) {
     if (R < .4) { say(f, pick(FRASI.ciccio.cavi)); hold(f, t, 3500); return; }
     if (R < .55) say(f, pick(FRASI.ciccio.xfactor));
   } else if (k === 'nemesi') {
-    if (R < .12 && !f.modus) { goModus(f, t); return; }
+    if (f.modus) { target(f); return; }
+    if (R < .12) { goModus(f, t); return; }
     if (R < .45) say(f, pick(FRASI.nemesi.occhi));
     else if (R < .75) say(f, pick(FRASI.nemesi.conCiccio));
     hold(f, t, rnd(800, 2000));
@@ -136,9 +188,9 @@ function arrive(f, t) {
   target(f);
 }
 function goModus(f, t) {
-  f.modus = true; f.img.src = 'nemesi-modus.png'; f.w = 190 * SC; f.el.style.width = f.w + 'px';
+  f.modus = true; f.mUntil = t + 9000; f.img.src = 'nemesi-modus.png'; f.w = 190 * SC; f.el.style.width = f.w + 'px';
   say(f, pick(FRASI.nemesi.modus) || pick(FRASI.nemesi.preferita) || 'Vroom vroom!', 4500);
-  f.until = t + 8000; f.mode = 'stop';
+  f.mode = 'swim'; target(f);
 }
 function backFromModus(f) {
   f.modus = false; f.img.src = 'nemesi.png'; f.w = CH.nemesi.w * SC; f.el.style.width = f.w + 'px';
@@ -151,7 +203,7 @@ function make(k) {
   $('#tank').appendChild(el);
   const f = {k, c, el, img: el.firstChild, b: el.lastChild, w: c.w * SC, x: rnd(60, W() - 260), y: rnd(130, H() - 260),
     dir: 1, mode: 'swim', until: 0, bt: 0, ph: rnd(0, 6), cd: 0};
-  F[k] = f; target(f);
+  F[k] = f; target(f); if (k !== 'gullotta') { f.x = f.tx; f.y = f.ty; target(f); }
   el.onclick = () => {
     const L = FRASI[k];
     say(f, pick(k === 'gullotta' ? L.sindaco : k === 'giulia' ? L.normali : k === 'salvatore' ? L.incontro : k === 'ciccio' ? L.xfactor : L.conCiccio));
@@ -168,6 +220,7 @@ function loop(t) {
   for (const key in F) {
     const f = F[key];
     if (f.mode === 'away') continue;
+    if (f.modus && t > f.mUntil) { backFromModus(f); target(f); }
     if (f.mode === 'stop' || f.mode === 'sleep') {
       if (f.mode === 'sleep' && t > f.talk) { say(f, pick(FRASI.salvatore.sonno)); f.talk = t + rnd(3000, 4500); }
       if (t > f.until) {
@@ -178,12 +231,12 @@ function loop(t) {
       const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy);
       if (d < 8) arrive(f, t);
       else {
-        const sp = f.c.speed * k60;
+        const sp = f.c.speed * (f.modus ? 2 : 1) * (window.NIGHT ? .4 : 1) * k60;
         f.x += dx / d * sp; f.y += dy / d * sp;
         if (Math.abs(dx) > 2) f.dir = dx > 0 ? 1 : -1;
       }
     }
-    const bob = Math.sin(t / 700 + f.ph) * (f.mode === 'sleep' ? 9 : 5);
+    const bob = f.grounded ? Math.sin(t / 90 + f.ph) * 1.5 : Math.sin(t / 700 + f.ph) * (f.mode === 'sleep' ? 9 : 5);
     f.el.style.transform = `translate(${f.x}px,${f.y + bob}px)`;
     const flip = f.c.face && ((f.dir > 0 && f.c.face === 'L') || (f.dir < 0 && f.c.face === 'R'));
     f.img.style.transform = flip ? 'scaleX(-1)' : '';
@@ -225,10 +278,137 @@ function clean() {
   const sp = setInterval(spray, 1500);
   setTimeout(() => {
     clearInterval(sp); cl.classList.remove('on'); cb.classList.remove('on');
-    s.x = rnd(100, W() - 300); s.y = rnd(130, H() - 300); s.mode = 'swim'; s.el.style.visibility = ''; target(s);
+    s.x = rnd(100, W() - 300); s.y = water(s); s.mode = 'swim'; s.el.style.visibility = ''; target(s);
   }, 7000);
 }
 setTimeout(function again() { clean(); setTimeout(again, rnd(60000, 100000)); }, 30000);
+
+/* ====== EXTRA: effetti, giorno/notte, pasti, dialoghi, easter egg, IA ====== */
+// Effetti che compaiono sopra i pesci. Per usare una GIF al posto dell'emoji aggiungi gif: 'nome.gif' (es. mail: {gif: 'mail.gif'})
+const FX = {
+  mail: {emoji: '📧'}, sonno: {emoji: '💤'}, cavi: {emoji: '🔌'}, stella: {emoji: '⭐'},
+  rabbia: {emoji: '💢'}, fumo: {emoji: '💨'}, occhi: {emoji: '👀'}, sindaco: {emoji: '🚲'}
+};
+// Opzionale: indirizzo di un servizio IA che restituisce {battute:[{chi:'giulia',frase:'...'}]}
+const AI_URL = '';
+window.NIGHT = false;
+
+function fx(f, name) {
+  const d = FX[name] || {emoji: name}, e = document.createElement('div');
+  e.className = 'fx'; e.style.left = (f.x + f.w / 2) + 'px'; e.style.top = (f.y - 6) + 'px';
+  if (d.gif) e.innerHTML = '<img src="' + d.gif + '" width="64" alt="">'; else e.textContent = d.emoji;
+  $('#tank').appendChild(e); setTimeout(() => e.remove(), 2800);
+}
+const _say = say;
+say = (f, txt, ms) => {
+  _say(f, txt, ms);
+  if (!txt || f.mode === 'away' || Math.random() > .7) return;
+  const T = [[FRASI.giulia.mail, 'mail'], [FRASI.salvatore.sonno, 'sonno'], [FRASI.ciccio.cavi, 'cavi'], [FRASI.ciccio.xfactor, 'stella'],
+    [FRASI.ciccio.nemesi, 'rabbia'], [FRASI.gullotta.insultatoDa, 'rabbia'], [FRASI.nemesi.conCiccio, 'fumo'], [FRASI.nemesi.occhi, 'occhi'], [FRASI.gullotta.sindaco, 'sindaco']];
+  const m = T.find(x => x[0] && x[0].includes(txt)); if (m) fx(f, m[1]);
+};
+
+/* Giorno e notte */
+function mood() {
+  const d = new Date(), h = d.getHours() + d.getMinutes() / 60;
+  window.NIGHT = h < 6.5 || h >= 22.5;
+  $('#bg').style.filter = `brightness(${window.NIGHT ? .45 : (h < 8 || h >= 20) ? .75 : 1}) saturate(1.1)`;
+}
+setInterval(mood, 60000); mood();
+
+/* Pasti: colazione 8, pranzo 13, cena 20. Tocca l'orologio per darne uno subito */
+let fedUntil = 0, lastMeal = '';
+function feed() {
+  if (Date.now() < fedUntil) return; fedUntil = Date.now() + 20000;
+  const cx = rnd(W() * .25, W() * .75);
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div'); p.className = 'food';
+    p.style.cssText = `left:${cx + rnd(-90, 90)}px;top:-10px;--d:${H() * rnd(.5, .7)}px;animation-duration:${rnd(5, 9)}s;animation-delay:${rnd(0, 2)}s`;
+    $('#tank').appendChild(p); setTimeout(() => p.remove(), 12000);
+  }
+  Object.values(F).forEach((f, i) => {
+    if (f.k === 'gullotta' || f.mode === 'away') return;
+    setTimeout(() => {
+      if (f.modus) backFromModus(f);
+      f.mode = 'swim'; f.tx = Math.max(10, Math.min(W() - f.w - 10, cx + rnd(-130, 130) - f.w / 2));
+      f.ty = f.k === 'ciccio' ? floor(f) : ZONE.waterBottom * H() - hh(f) - rnd(0, H() * .12);
+      say(f, pick((FRASI.pasto || {})[f.k]), 4000); fx(f, '🍤');
+    }, i * 700);
+  });
+}
+$('.clock').onclick = feed;
+setInterval(() => {
+  const d = new Date(), h = d.getHours(), key = d.toDateString() + h;
+  if ([8, 13, 20].includes(h) && d.getMinutes() < 10 && lastMeal !== key) { lastMeal = key; feed(); }
+  if (window.NIGHT) {
+    const s = F.salvatore, g = F.gullotta, n = performance.now();
+    if (s.mode === 'swim') { s.mode = 'sleep'; s.until = n + 60000; s.talk = n + 4000; }
+    if (g.mode === 'stop') g.until = Math.max(g.until, n + 30000);
+  }
+}, 15000);
+
+/* Pesci indaffarati: frasi in base all'orario e al giorno */
+setInterval(() => {
+  if (window.NIGHT || Math.random() < .4) return;
+  const d = new Date(), h = d.getHours() + d.getMinutes() / 60;
+  const k = pick(Object.keys(F).filter(k => F[k].mode !== 'away' && (k !== 'gullotta' || F.gullotta.dashing)));
+  if (!k) return;
+  const r = ((FRASI.routine || {})[k] || []).find(x => h >= x.da && h < x.a);
+  const line = Math.random() < .3 ? pick((FRASI.giorni || {})[d.getDay()]) : (r && pick(r.f));
+  if (line) say(F[k], line, 4200);
+}, 22000);
+
+/* Dialoghi tra pesci vicini */
+let dCd = 0;
+setInterval(() => {
+  if (Date.now() < dCd || window.NIGHT) return;
+  const x = pick((FRASI.dialoghi || []).filter(x => { const a = F[x[0]], b = F[x[2]]; return a.mode !== 'away' && b.mode !== 'away' && a.x > -50 && b.x > -50 && near(a, b, 260); }));
+  if (!x) return;
+  dCd = Date.now() + 30000; say(F[x[0]], x[1], 3500); setTimeout(() => say(F[x[2]], x[3], 3500), 2800);
+}, 2000);
+
+/* Easter egg: ogni tanto qualcuno passa */
+function passa(emoji, y, size, dur, dir) {
+  const e = document.createElement('div'); e.className = 'egg'; e.textContent = emoji;
+  e.style.cssText = `top:${y}px;font-size:${size}px;left:${dir > 0 ? -size * 2 : W() + size}px;scale:${dir > 0 ? '-1 1' : '1 1'};transition:transform ${dur}s linear`;
+  $('#tank').appendChild(e);
+  requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transform = `translateX(${dir * (W() + size * 4)}px)`; }));
+  setTimeout(() => e.remove(), dur * 1000 + 600); return e;
+}
+const chorus = (txts, ms = 3000) => Object.values(F).forEach(f => f.k !== 'gullotta' && f.mode !== 'away' && say(f, pick(txts), ms));
+const EGGS = [
+  () => { passa('🦈', rnd(H() * .25, H() * .5), 130, 14, Math.random() < .5 ? 1 : -1); chorus(['...', '!!', 'Fate finta di niente'], 4000); },
+  () => passa('🐢', rnd(H() * .3, H() * .6), 80, 45, Math.random() < .5 ? 1 : -1),
+  () => { passa('🦆', ZONE.waterTop * H() - 20, 70, 35, -1); say(F.salvatore, 'Una papera... sto sognando?'); },
+  () => { passa('🛸', rnd(60, H() * .25), 70, 7, 1); setTimeout(() => say(F.nemesi, 'Ciccio, hai visto?'), 2500); setTimeout(() => say(F.ciccio, 'Non ho visto niente. Sto lavorando.'), 5000); },
+  () => {
+    const e = passa('🍾', rnd(H() * .3, H() * .55), 60, 40, 1); e.style.pointerEvents = 'auto'; e.style.cursor = 'pointer';
+    e.onclick = () => {
+      const r = e.getBoundingClientRect(), m = document.createElement('div'); m.className = 'bubble on';
+      m.style.cssText = `position:fixed;left:${r.left}px;top:${r.top - 60}px;bottom:auto;transform:none;z-index:9`;
+      m.textContent = pick(FRASI.bottiglia); document.body.appendChild(m); setTimeout(() => m.remove(), 5000);
+    };
+  },
+  () => { passa('🐙', rnd(H() * .35, H() * .6), 90, 30, -1); chorus(['Un polpo!', 'Ciao polpo', 'Chi lo ha invitato?']); }
+];
+setTimeout(function egg() { if (!window.NIGHT || Math.random() < .3) pick(EGGS)(); setTimeout(egg, rnd(50000, 110000)); }, 25000);
+
+/* Brano a sorpresa quando passa il sindaco */
+const eggA = new Audio();
+function chase() {
+  if (musOff || !MUSIC.egg || !mus.src || !eggA.paused) return;
+  eggA.src = MUSIC.egg; eggA.volume = .3; eggA.play().catch(() => {});
+  mus.volume = .04; setTimeout(() => { eggA.pause(); mus.volume = MUSIC.volume; }, 22000);
+}
+
+/* IA opzionale */
+if (AI_URL) setInterval(async () => {
+  try {
+    const r = await fetch(AI_URL, {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({giorno: new Date().toLocaleDateString('it-IT', {weekday: 'long'}), ora: new Date().toTimeString().slice(0, 5), personaggi: Object.keys(F)})});
+    ((await r.json()).battute || []).forEach((b, i) => F[b.chi] && setTimeout(() => say(F[b.chi], b.frase, 4500), i * 3500));
+  } catch (e) {}
+}, 120000);
 </script>
 </body>
 </html>

@@ -1,17 +1,26 @@
-🐟 Smart Aquarium, versione 1.0
+# 🐟 Smart Aquarium, versione 1
+
 Un acquario con cinque abitanti, ognuno col suo carattere. Tocca un pesce per farlo parlare.
-I personaggi
-Giulia, la business woman
+
+## I personaggi
+
+**Giulia, la business woman**
 Nuota veloce e dritta, sempre di fretta. Ogni tanto si ferma "a controllare le mail" e propone call a chiunque incontri.
-Salvatore, il dormiglione
+
+**Salvatore, il dormiglione**
 La persona più buona dell'acquario, ma ha sempre sonno. Si addormenta in acqua e parla nel sonno, e quando incontra un pesce sveglio sfodera la sua anima underground. Ogni tanto esce a pulire l'acquario con lo spray.
-Ciccio, l'architetto del suono
+
+**Ciccio, l'architetto del suono**
 Granchio sempre indaffarato: sistema cavi e audio e odia i rimbombi. Lavora a X Factor e te lo ricorda ogni tanto, ma resta umile (e coccolone).
-Nemesi, il socio di Ciccio
+
+**Nemesi, il socio di Ciccio**
 Fa musica con Ciccio e con lui litiga di continuo. Sale e scende per l'acquario e ogni tanto si distrae, sale sulla sua Modus e parte per la sua strada.
-Il sindaco Gullotta, il terrore dei pesci
+
+**Il sindaco Gullotta, il terrore dei pesci**
 Sfreccia in bici per tutto l'acquario, tra insulti e proteste. Lui risponde sempre con un solenne "l'opposizione!!" e promette di riparare le buche.
-Come si usa
-Tocca lo schermo una volta per attivare l'audio (il rumore dello spray di Salvatore).
-Tocca un pesce per farlo parlare.
-Le frasi si modificano nel file `frasi.js`.
+
+## Come si usa
+
+- Tocca lo schermo una volta per attivare l'audio (il rumore dello spray di Salvatore).
+- Tocca un pesce per farlo parlare.
+- Le frasi si modificano nel file `frasi.js`.

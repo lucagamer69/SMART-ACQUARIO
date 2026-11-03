@@ -192,5 +192,69 @@ const FRASI = {
       "Ti manca solo il triciclo!",
       "Vergogna! Vergogna!"
     ]
-  }
+  },
+
+  // Frasi per giorno della settimana (0 = domenica ... 6 = sabato)
+  giorni: {
+    0: ["Domenica: oggi non si lavora (forse)", "Giornata calma in vasca...", "Pranzo della domenica!"],
+    1: ["Lunedì... ancora lunedì", "Settimana nuova, stessi pesci", "Chi ha messo la sveglia?"],
+    2: ["Martedì: la giornata ingrana", "Siamo a un terzo della settimana"],
+    3: ["Mercoledì: metà settimana", "Gobba della settimana superata"],
+    4: ["Giovedì: quasi quasi è venerdì", "Domani è venerdì!"],
+    5: ["Venerdì! Aperitivo?", "Ultimo sforzo prima del weekend"],
+    6: ["Sabato: si fa il bagno (sempre)", "Sabato sera in vasca"]
+  },
+
+  // Cosa fanno durante la giornata (da = ora di inizio, a = ora di fine)
+  routine: {
+    giulia: [
+      {da: 9, a: 13, f: ["Riunione di allineamento", "Ho 3 call oggi", "Sto finendo il report"]},
+      {da: 13, a: 14.5, f: ["Pranzo di lavoro (solo alghe)"]},
+      {da: 15, a: 19, f: ["Call alle 16, non muovetevi", "Mail urgente!"]}
+    ],
+    salvatore: [
+      {da: 6.5, a: 11, f: ["Troppo presto...", "Caffè... dov'è il caffè...", "Ancora cinque minuti..."]},
+      {da: 14, a: 16, f: ["Pisolino strategico", "Ora di digestione..."]}
+    ],
+    ciccio: [
+      {da: 9, a: 13, f: ["Soundcheck in corso", "Questo kick rimbomba!"]},
+      {da: 15, a: 20, f: ["Sto mixando, non disturbare", "Ultimo cavo e ho finito"]}
+    ],
+    nemesi: [
+      {da: 10, a: 19, f: ["Beat in lavorazione", "Ciccio, ascolta questo"]},
+      {da: 19, a: 23, f: ["Sessione notturna", "Si registra stasera"]}
+    ],
+    gullotta: [
+      {da: 8, a: 12, f: ["Inaugurazione di una buca!", "Consiglio comunale: l'opposizione!!"]},
+      {da: 12, a: 19, f: ["Giro d'ispezione in bici", "Sopralluogo alle buche"]}
+    ]
+  },
+
+  // Frasi quando arriva il cibo (tocca l'orologio, oppure alle 8, 13 e 20)
+  pasto: {
+    giulia: ["Pausa pranzo: 10 minuti", "Mangio e rispondo alle mail"],
+    salvatore: ["...finalmente si mangia...", "Mangio e poi dormo"],
+    ciccio: ["Stacco i cavi e mangio", "A tavola!"],
+    nemesi: ["Ciccio, mangia anche tu", "Questa è musica per il mio stomaco"]
+  },
+
+  // Piccole conversazioni quando due pesci sono vicini: [chi, frase, chi risponde, risposta]
+  dialoghi: [
+    ["giulia", "Salvo, abbiamo una call!", "salvatore", "...cinque minuti ancora..."],
+    ["ciccio", "Nemesi, hai toccato i cavi?", "nemesi", "No... forse..."],
+    ["nemesi", "Ciccio, ascolta questo beat", "ciccio", "Troppo riverbero, rifallo"],
+    ["giulia", "Facciamo un allineamento?", "ciccio", "Ho il soundcheck, mandami una mail"],
+    ["salvatore", "Zzz... Giulia, il treno...", "giulia", "Salvo, sei in acqua"],
+    ["gullotta", "Sistemeremo le buche!", "nemesi", "Sindaco, è l'acqua!"]
+  ],
+
+  // Messaggi nella bottiglia (easter egg)
+  bottiglia: [
+    "Ricordati di respirare (le branchie contano)",
+    "Oggi è andata bene.",
+    "Il tesoro è sotto la Modus",
+    "Fai una pausa, l'acqua aspetta",
+    "Ciao dal passato: va tutto bene",
+    "Sei qui, e basta questo"
+  ]
 };
