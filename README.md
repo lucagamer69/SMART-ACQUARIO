@@ -1,4 +1,4 @@
-# 🐟 Smart Aquarium, versione 1
+# 🐟 Smart Aquarium, versione 1,6
 
 Un acquario con tanti abitanti, ognuno col suo carattere. Tocca un pesce per farlo parlare.
 
