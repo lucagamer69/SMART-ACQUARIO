@@ -62,6 +62,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 .luca{position:fixed;z-index:4;height:36vh;translate:-50% 0;pointer-events:none;opacity:0;transition:opacity 1.5s}
 .luca.on{opacity:1}
 .luca img{height:100%;width:auto;display:block}
+.sheep{position:absolute;left:0;top:0;height:auto;pointer-events:none;z-index:2;transition:transform 1.8s linear,opacity 1.2s}
 .zone{position:fixed;left:0;right:0;z-index:9;pointer-events:none;background:rgba(0,200,255,.15);border:1px dashed #0ff}
 @media(max-width:900px){.ui{padding:20px}#hm{font-size:3.4rem}}
 @media(prefers-reduced-motion:reduce){.rays,.air{animation:none}}
@@ -161,6 +162,9 @@ const CH = {
   nemesi:   {img: 'nemesi.png',   w: 150, face: 'R', speed: 1.1},
   alessia:  {img: 'alessia.png',  w: 150, face: null, speed: .9},
   maura:    {img: 'maura.png',    w: 165, face: 'R', speed: 1.3},
+  marco:    {img: 'marco.png',    w: 140, face: 'L', speed: 1.8},
+  alessandro: {img: 'alessandro.png', w: 70, face: null, speed: .6},
+  nino:     {img: 'nino.png',     w: 105, face: 'L', speed: .8},
   gullotta: {img: 'gullotta.png', w: 150, face: 'L', speed: 4}
 };
 const W = () => innerWidth, H = () => innerHeight;
@@ -180,13 +184,16 @@ function target(f) {
     const fromL = Math.random() < .5, onFloor = Math.random() < .5, y = onFloor ? floor(f) : water(f);
     f.grounded = onFloor;
     f.x = fromL ? -w - 40 : W() + 40; f.y = y; f.tx = fromL ? W() + 40 : -w - 40; f.ty = y;
-    f.dashing = true; say(f, pick(FRASI.gullotta.sindaco), 2600); if (Math.random() < .2) chase();
+    f.dashing = true; say(f, pick(FRASI.gullotta.sindaco), 2600); if (Math.random() < .12) chase();
   } else if (f.k === 'nemesi') {
     if (f.modus) { f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = floor(f); f.grounded = true; return; }
     const c = F.ciccio, a = ZONE.waterTop * H(), b = Math.max(a + 40, ZONE.waterBottom * H() - hh(f));
     f.tx = Math.max(10, Math.min(W() - w - 10, c.x + rnd(-150, 150)));
     f.ty = f.low ? rnd(a, a + (b - a) * .25) : rnd(b - (b - a) * .25, b); f.low = !f.low;
-  } else if (f.k === 'ciccio') {
+  } else if (f.k === 'nino') {
+    f.grounded = true; f.ty = floor(f);
+    f.tx = f.leaving ? (f.dirOut > 0 ? W() + 80 : -w - 80) : rnd(W() * .15, W() * .85);
+  } else if (f.k === 'ciccio' || f.k === 'alessandro') {
     f.tx = rnd(20, Math.max(40, W() - w - 20)); f.ty = floor(f); f.grounded = true;
   } else if (f.k === 'maura' && Math.random() < .45) {
     const a = F.alessia; f.tx = Math.max(10, Math.min(W() - w - 10, a.x + rnd(-130, 130))); f.ty = water(f);
@@ -197,7 +204,8 @@ function target(f) {
 function hold(f, t, ms) { f.mode = 'stop'; f.until = t + ms; }
 function arrive(f, t) {
   const k = f.k, R = Math.random();
-  if (k === 'gullotta') { f.dashing = false; f.x = -999; hold(f, t, rnd(25000, 50000)); return; }
+  if (f.chill) { hold(f, t, 1e9); return; }
+  if (k === 'gullotta') { f.dashing = false; f.x = -999; hold(f, t, rnd(120000, 240000)); return; }
   if (k === 'giulia') {
     if (R < .35) { say(f, pick(FRASI.giulia.mail)); hold(f, t, 3500); return; }
     if (R < .75) say(f, pick(FRASI.giulia.normali));
@@ -206,6 +214,13 @@ function arrive(f, t) {
   } else if (k === 'ciccio') {
     if (R < .4) { say(f, pick(FRASI.ciccio.cavi)); hold(f, t, 3500); return; }
     if (R < .55) say(f, pick(FRASI.ciccio.xfactor));
+  } else if (k === 'marco') {
+    if (R < .45) { say(f, pick(FRASI.marco.matto)); if (R < .2) fx(f, '💥'); }
+  } else if (k === 'alessandro') {
+    if (R < .4) { say(f, pick(FRASI.alessandro.spiegoni), 5000); hold(f, t, 5000); return; }
+  } else if (k === 'nino') {
+    if (f.leaving) { f.mode = 'away'; f.leaving = false; f.el.style.visibility = 'hidden'; return; }
+    if (R < .5) say(f, pick(FRASI.nino.pascolo));
   } else if (k === 'alessia') {
     if (R < .25) { say(f, pick(FRASI.alessia.cucina)); hold(f, t, 3500); return; }
     if (R < .55) say(f, pick(FRASI.alessia.giapponese));
@@ -245,7 +260,7 @@ function make(k) {
   return f;
 }
 Object.keys(CH).forEach(make);
-F.gullotta.x = -999; hold(F.gullotta, 0, 6000);
+F.gullotta.x = -999; hold(F.gullotta, 0, 90000); F.nino.mode = 'away'; F.nino.el.style.visibility = 'hidden';
 
 /* Movimento */
 let last = performance.now();
@@ -272,9 +287,9 @@ function loop(t) {
     }
     const bob = f.grounded ? Math.sin(t / 90 + f.ph) * 1.5 : Math.sin(t / 700 + f.ph) * (f.mode === 'sleep' ? 9 : 5);
     f.el.style.transform = `translate(${f.x}px,${f.y + bob}px)`;
-    const flip = f.c.face && ((f.dir > 0 && f.c.face === 'L') || (f.dir < 0 && f.c.face === 'R'));
+    const flip = f.c.face && !f.chill && ((f.dir > 0 && f.c.face === 'L') || (f.dir < 0 && f.c.face === 'R'));
     f.img.style.transform = flip ? 'scaleX(-1)' : '';
-    if (f.k === 'salvatore') { const w = f.mode === 'sleep' ? 'salvatore-dorme.png' : 'salvatore.png'; if (f.cur !== w) { f.cur = w; f.img.src = w; } }
+    const sk = SKIN[f.k]; if (sk) { const w = sk(f); if (f.cur !== w) { f.cur = w; f.img.src = w; } }
     f.img.style.opacity = 1;
   }
   requestAnimationFrame(loop);
@@ -307,6 +322,7 @@ setInterval(() => {
 /* Salvatore esce a pulire l'acquario */
 function clean() {
   const s = F.salvatore, cl = $('#cleaner'), cb = cl.querySelector('.bubble');
+  if (s.mode === 'away' || s.chill) return;
   s.mode = 'away'; s.el.style.visibility = 'hidden';
   cl.classList.add('on'); spray();
   cb.textContent = pick(FRASI.salvatore.pulizie) || ''; cb.classList.add('on');
@@ -316,7 +332,6 @@ function clean() {
     s.x = rnd(100, W() - 300); s.y = water(s); s.mode = 'swim'; s.el.style.visibility = ''; target(s);
   }, 7000);
 }
-setTimeout(function again() { clean(); setTimeout(again, rnd(60000, 100000)); }, 30000);
 
 /* ====== EXTRA: effetti, giorno/notte, pasti, dialoghi, easter egg, IA ====== */
 // Effetti che compaiono sopra i pesci. Per usare una GIF al posto dell'emoji aggiungi gif: 'nome.gif' (es. mail: {gif: 'mail.gif'})
@@ -363,7 +378,7 @@ function feed() {
     $('#tank').appendChild(p); setTimeout(() => p.remove(), 12000);
   }
   Object.values(F).forEach((f, i) => {
-    if (f.k === 'gullotta' || f.mode === 'away') return;
+    if (f.k === 'gullotta' || f.mode === 'away' || f.chill) return;
     setTimeout(() => {
       if (f.modus) backFromModus(f);
       f.mode = 'swim'; f.tx = Math.max(10, Math.min(W() - f.w - 10, cx + rnd(-130, 130) - f.w / 2));
@@ -427,7 +442,6 @@ const EGGS = [
   },
   () => { passa('🐙', rnd(H() * .35, H() * .6), 90, 30, -1); chorus(['Un polpo!', 'Ciao polpo', 'Chi lo ha invitato?']); }
 ];
-setTimeout(function egg() { if (!window.NIGHT || Math.random() < .3) pick(EGGS)(); setTimeout(egg, rnd(50000, 110000)); }, 25000);
 
 /* ====== NUOVI PERSONAGGI ED EVENTI RARI ====== */
 const rare = (fn, min, max, first) => setTimeout(function r() { if (!window.NIGHT) fn(); setTimeout(r, rnd(min, max)); }, first);
@@ -469,7 +483,7 @@ F.alessia.el.onclick = () => { const n = Date.now(); tap3 = n - tapT < 1500 ? ta
 function minaccia() {
   const m = F.maura; if (m.mode === 'away' || window.NIGHT) return;
   const k = pick(['salvatore', 'salvatore', 'giulia', 'ciccio', 'nemesi'].filter(k => F[k].mode !== 'away')); if (!k) return;
-  const o = F[k]; m.mode = 'swim'; m.tx = o.x; m.ty = o.y;
+  const o = F[k]; if (o.chill) return; m.mode = 'swim'; m.tx = o.x; m.ty = o.y;
   if (Math.random() < .6) {
     say(m, pick(FRASI.maura.minacce), 3000);
     setTimeout(() => {
@@ -501,7 +515,7 @@ function gabriel() {
 
 /* Salvatore diventa un branco di sardine (silenzioso) */
 function sardine() {
-  const s = F.salvatore; if (s.mode === 'away') return;
+  const s = F.salvatore; if (s.mode === 'away' || s.chill) return;
   s.mode = 'away'; s.el.style.visibility = 'hidden';
   const dir = Math.random() < .5 ? 1 : -1, dur = 28, sc = document.createElement('div');
   sc.className = 'school'; sc.style.cssText = `top:${rnd(H() * .15, H() * .55)}px;left:${dir > 0 ? -300 : W() + 60}px;transition:transform ${dur}s linear`;
@@ -524,12 +538,108 @@ function luca() {
   setTimeout(() => e.classList.remove('on'), 16000); setTimeout(() => { clearInterval(iv); e.remove(); }, 17800);
 }
 
-rare(luca, 150000, 280000, 70000);
-rare(gabriel, 240000, 420000, 100000);
-rare(attacco, 300000, 540000, 150000);
-rare(sardine, 420000, 600000, 120000);
+const free = k => F[k] && F[k].mode !== 'away' && !F[k].chill;
+const SKIN = {
+  salvatore: f => f.chill ? 'salvo-chill.png' : f.mode === 'sleep' ? 'salvatore-dorme.png' : 'salvatore.png',
+  ciccio: f => f.chill ? 'ciccio-chill.png' : 'ciccio.png',
+  marco: f => f.chill ? 'marco-chill.png' : 'marco.png'
+};
+
+/* Marco "Crazy": si lancia su un altro pesce e spacca tutto */
+function pazzia() {
+  const m = F.marco, k = pick(['salvatore', 'ciccio', 'alessandro', 'nemesi', 'giulia', 'alessia'].filter(free)); if (!free('marco') || !k) return;
+  const o = F[k]; m.mode = 'swim'; m.fleeUntil = performance.now() + 2500; m.tx = o.x; m.ty = o.y;
+  say(m, pick(FRASI.marco.matto), 2500);
+  setTimeout(() => {
+    fx(o, '💥'); say(o, pick(FRASI.marco.vittime), 2500); o.mode = 'swim'; o.fleeUntil = performance.now() + 3000;
+    o.tx = o.x < W() / 2 ? W() - o.w - 20 : 20; o.ty = (k === 'ciccio' || k === 'alessandro') ? floor(o) : water(o);
+  }, 2300);
+}
+
+/* Pecorelle: sul fondo, non volano */
+function sheepAt(x) {
+  const e = document.createElement('img'); e.src = 'pecora.png'; e.alt = ''; e.className = 'sheep'; e.style.width = 52 * SC + 'px';
+  e.style.transition = 'none'; $('#tank').appendChild(e);
+  const s = {e, x, y: rnd(ZONE.floorTop * H(), ZONE.floorBottom * H()) - 40 * SC, run: false};
+  e.style.transform = `translate(${x}px,${s.y}px)`; e.offsetWidth; e.style.transition = ''; return s;
+}
+function sheepMove(s, x) { s.e.style.scale = x < s.x ? '1 1' : '-1 1'; s.x = x; s.e.style.transform = `translate(${x}px,${s.y}px)`; }
+function pecora() {
+  const s = sheepAt(rnd(W() * .15, W() * .85)), b = document.createElement('div');
+  const iv = setInterval(() => sheepMove(s, Math.max(10, Math.min(W() - 60, s.x + rnd(-120, 120)))), 3500);
+  b.className = 'bubble on'; b.textContent = pick(FRASI.pecora.beee);
+  setTimeout(() => { b.style.cssText = `position:fixed;left:${s.x + 25}px;top:${s.y - 40}px;bottom:auto;z-index:9`; document.body.appendChild(b); setTimeout(() => b.remove(), 3000); }, 2500);
+  setTimeout(() => { const k = pick(['ciccio', 'alessia', 'maura', 'salvatore', 'alessandro', 'giulia'].filter(free)); if (k) say(F[k], pick(FRASI.pecora.generiche), 3500); }, 6000);
+  setTimeout(() => { clearInterval(iv); s.e.style.opacity = 0; setTimeout(() => s.e.remove(), 1500); }, 22000);
+}
+
+/* Nino passa a pascolare le sue pecore, poi se ne va */
+function nino() {
+  const n = F.nino, fromL = Math.random() < .5; if (n.mode !== 'away') return;
+  n.dirOut = fromL ? 1 : -1; n.leaving = false; n.x = fromL ? -n.w - 40 : W() + 40;
+  n.mode = 'swim'; n.el.style.visibility = ''; target(n); n.y = n.ty;
+  say(n, pick(FRASI.nino.arrivo), 3500);
+  const sheep = [0, 1, 2].map(i => sheepAt(n.x + (fromL ? -1 : 1) * (70 + i * 60)));
+  const iv = setInterval(() => {
+    if (n.mode === 'away') { clearInterval(iv); sheep.forEach(s => { s.e.style.opacity = 0; setTimeout(() => s.e.remove(), 1500); }); return; }
+    sheep.forEach((s, i) => {
+      if (s.run) { if (Math.random() < .25) s.run = false; return; }
+      if (!n.leaving && Math.random() < .08) {
+        s.run = true; const x = rnd(40, W() - 80); sheepMove(s, x); say(n, pick(FRASI.nino.scappa), 3000);
+        n.tx = x; n.ty = floor(n); n.fleeUntil = performance.now() + 2500; return;
+      }
+      sheepMove(s, Math.max(-80, Math.min(W() + 40, n.x + (i - 1) * 70 + rnd(-30, 30))));
+    });
+  }, 1800);
+  setTimeout(() => { n.leaving = true; say(n, pick(FRASI.nino.addio), 3500); n.tx = n.dirOut > 0 ? W() + 80 : -n.w - 80; n.ty = floor(n); }, 40000);
+}
+
+/* I ragazzi chill si ritrovano sul fondo (stessi personaggi con un'altra skin: niente doppioni) */
+function chill() {
+  const ks = ['marco', 'ciccio', 'salvatore', 'alessandro'].filter(free); if (ks.length < 3) return;
+  const cx = rnd(W() * .3, W() * .55);
+  ks.forEach((k, i) => {
+    const f = F[k]; f.chill = true; f.w = 85 * SC; f.el.style.width = f.w + 'px'; f.mode = 'swim'; f.fleeUntil = 0;
+    f.tx = cx + i * 105 * SC; f.ty = floor(f); f.grounded = true;
+  });
+  const talk = () => { const k = pick(ks.filter(k => k !== 'salvatore')); say(F[k], pick(FRASI.chill.discorsi), 3500); };
+  const iv = setInterval(talk, 5500); setTimeout(talk, 3500);
+  const nem = F.nemesi, sal = F.salvatore;
+  if (ks.includes('salvatore') && free('nemesi') && !nem.modus) {
+    setTimeout(() => say(F[pick(ks.filter(k => k !== 'salvatore'))], pick(FRASI.chill.domandaSalvo), 3000), 16000);
+    setTimeout(() => say(sal, '...', 2500), 18500);
+    setTimeout(() => { nem.mode = 'swim'; nem.fleeUntil = performance.now() + 3000; nem.tx = sal.x + 70; nem.ty = floor(nem); nem.grounded = true; say(nem, pick(FRASI.chill.canna), 3000); }, 19500);
+    setTimeout(() => say(sal, 'Sì.', 2500), 23000);
+  }
+  setTimeout(() => {
+    clearInterval(iv);
+    ks.forEach(k => { const f = F[k]; f.chill = false; f.w = f.c.w * SC; f.el.style.width = f.w + 'px'; f.mode = 'swim'; target(f); });
+  }, 42000);
+}
+
+/* REGISTA: decide quando succede qualcosa, un evento alla volta, senza sovrapposizioni */
+const EVENTS = [
+  {w: 3, ok: () => true, run: () => pick(EGGS)(), dur: 8000},
+  {w: 2, ok: () => free('salvatore'), run: clean, dur: 9000},
+  {w: 1, ok: () => free('salvatore'), run: sardine, dur: 30000},
+  {w: 1, ok: () => free('alessia'), run: attacco, dur: 9000},
+  {w: 2, ok: () => !$('.rise'), run: gabriel, dur: 10000},
+  {w: 2, ok: () => !$('.luca'), run: luca, dur: 18000},
+  {w: 2, ok: () => F.nino.mode === 'away', run: nino, dur: 45000},
+  {w: 2, ok: () => ['marco', 'ciccio', 'salvatore', 'alessandro'].filter(free).length >= 3, run: chill, dur: 45000},
+  {w: 2, ok: () => free('marco'), run: pazzia, dur: 8000},
+  {w: 1, ok: () => true, run: pecora, dur: 22000}
+];
+let nextEv = performance.now() + 40000;
+setInterval(() => {
+  const n = performance.now(); if (n < nextEv || (window.NIGHT && Math.random() < .7)) return;
+  const ok = EVENTS.filter(e => e.ok()); if (!ok.length) return;
+  let r = Math.random() * ok.reduce((a, e) => a + e.w, 0), ev = ok[0];
+  for (const e of ok) { if ((r -= e.w) < 0) { ev = e; break; } }
+  ev.run(); nextEv = n + ev.dur + rnd(35000, 70000);
+}, 5000);
 // Per provare un evento subito: aggiungi al link ?evento=attacco (oppure gabriel, sardine, luca, minaccia)
-const EV = {attacco, gabriel, sardine, luca, minaccia}, evn = new URLSearchParams(location.search).get('evento');
+const EV = {attacco, gabriel, sardine, luca, minaccia, chill, pazzia, nino, pecora, clean}, evn = new URLSearchParams(location.search).get('evento');
 if (EV[evn]) setTimeout(EV[evn], 3000);
 
 /* Brano a sorpresa quando passa il sindaco */

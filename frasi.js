@@ -232,6 +232,12 @@ const FRASI = {
       {da: 10, a: 19, f: ["Giro di ispezione", "Chi mi serve oggi?"]},
       {da: 19, a: 24, f: ["Serata girlzz con Alessia", "Aperitivo con le ragazze"]}
     ],
+    marco: [
+      {da: 10, a: 20, f: ["Fantacalcio, formazione fatta?", "Oggi spacco tutto!"]}
+    ],
+    alessandro: [
+      {da: 9, a: 22, f: ["Ti spiego una cosa...", "Nessuno l'ha chiesto, lo so"]}
+    ],
     gullotta: [
       {da: 8, a: 12, f: ["Inaugurazione di una buca!", "Consiglio comunale: l'opposizione!!"]},
       {da: 12, a: 19, f: ["Giro d'ispezione in bici", "Sopralluogo alle buche"]}
@@ -260,7 +266,16 @@ const FRASI = {
     ["maura", "Alessia, Nemesi segue Ciccio ovunque", "alessia", "えー！？ (Davvero!?) Gossip!"],
     ["alessia", "Salvo-kun, ti cucino la pasta!", "salvatore", "...è bruciata?..."],
     ["maura", "Salvo, vieni qui", "salvatore", "...no, grazie..."],
-    ["alessia", "Giulia, una call di gossip?", "giulia", "Ho 5 minuti, parla"]
+    ["alessia", "Giulia, una call di gossip?", "giulia", "Ho 5 minuti, parla"],
+    ["alessandro", "Allora, tutto parte dal Trattato di Westfalia...", "andrea", "Alessandro, nessuno ti ha chiesto niente!"],
+    ["alessandro", "Breve premessa storica...", "andrea", "Zitto, Ale, zitto!"],
+    ["alessandro", "Nemesi, con tutto il rispetto, la tua posizione è discutibile", "nemesi", "Ale, che stai dicendo?"],
+    ["nemesi", "Ale, hai finito?", "alessandro", "Ho appena cominciato, caro Nemesi."],
+    ["marco", "Nino, chi schieri in attacco?", "nino", "Faccio giocare chi segna, Marco"],
+    ["marco", "Andrea, la formazione del Fanta!", "andrea", "Marco, pensiamoci con calma"],
+    ["nino", "Marco, hai visto la giornata di campionato?", "marco", "Una follia! Si spacca tutto!"],
+    ["marco", "Ciccio, fammi un beat... SPACCA!", "ciccio", "Troppo riverbero, Marco"],
+    ["marco", "Alessandro, ti spiego io il campionato!", "alessandro", "Marco, prima il contesto storico"]
   ],
 
   // Messaggi nella bottiglia (easter egg)
@@ -304,5 +319,44 @@ const FRASI = {
   gabriel: {
     cuori: ["Ti voglio bene ❤", "Salvo, ti voglio bene!", "Un cuore per te!", "Vi voglio bene tutti (quasi)", "Buongiorno a chi mi ama"],
     reazioni: ["Gabri!!", "Ciao Gabri!", "Che bello!"]
+  },
+
+  marco: {
+    click: ["Che vuoi? Spacco tutto!", "Sei proprio Crazy!"],
+    matto: ["SPACCO TUTTO!", "Oggi spacco tutto!", "AHAHAH FRATÈ!", "Sono Crazy, che ci posso fare", "Il Fanta l'ho vinto io!"],
+    vittime: ["Marco!!", "Ma sei pazzo?!", "Aiuto, è Crazy!", "Fermatelo!"]
+  },
+
+  alessandro: {
+    click: ["Posso spiegarti una cosa?", "Vuoi sapere come nasce un confine?"],
+    // Spiegoni che nessuno ha chiesto
+    spiegoni: [
+      "Nessuno me l'ha chiesto, ma ti spiego: tutto parte dal Trattato di Westfalia...",
+      "Lo sapevi che molti confini sono stati tracciati col righello?",
+      "Ti spiego la geopolitica dello Stretto di Hormuz in 4 punti",
+      "Tecnicamente, il diritto internazionale dice altro",
+      "Breve premessa storica: 1648",
+      "Domanda che nessuno ha fatto: perché esistono i fusi orari?"
+    ]
+  },
+
+  nino: {
+    click: ["Ci vediamo a pascolare", "Tutto bene? Io pascolo"],
+    arrivo: ["Eccomi, vengo da Santa Domenica Vittoria", "Pascoliamo un po', pecorelle"],
+    pascolo: ["Calme, pecorelle, calme", "Qui l'erba è buona", "Pecorelle, non allontanatevi", "Santa Domenica Vittoria è un'altra cosa, ma si sta bene"],
+    scappa: ["Ehi! Torna qui!", "Ma dove vai, pecorella?!", "Lo sapevo, una scappa sempre"],
+    addio: ["Noi andiamo, a presto!", "Ora si torna a casa, pecorelle"]
+  },
+
+  // I ragazzi chill (Marco, Ciccio, Salvo, Alessandro) che si ritrovano sul fondo
+  chill: {
+    discorsi: ["Che pace, ragazzi...", "Stasera niente, solo relax", "Ma che bel posto, eh", "Bella lì", "Tutto tranquillo?", "Ascolta questo pezzo... è perfetto", "Un tè?", "Si sta bene qui in fondo", "Che silenzio bello"],
+    domandaSalvo: ["Salvo, hai qualcosa da dire?", "Salvo, tutto ok? Non parli mai", "Salvo, nessun commento?"],
+    canna: ["Facciamo una j?", "Facciamo una canna?", "Salvo, una j?"]
+  },
+
+  pecora: {
+    beee: ["Beeee", "Bee..."],
+    generiche: ["Una pecorella!", "Che carina!", "Ma da dove viene?"]
   }
 };

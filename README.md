@@ -34,6 +34,8 @@ Compare di rado, fermo e in silenzio, poi scompare.
 **Il branco di sardine**
 Ogni tanto Salvatore si trasforma in un branco di sardine che attraversa l'acquario senza dire niente.
 
+**Marco "Crazy"**, **Alessandro** (il re degli spiegoni), **Nino** con le sue pecorelle e i **ragazzi chill** che ogni tanto si ritrovano sul fondo.
+
 ## Come si usa
 
 - Tocca lo schermo una volta per attivare l'audio (il rumore dello spray di Salvatore).
